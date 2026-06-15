@@ -1,0 +1,54 @@
+# Daily Dugout Model -> GitHub Pages
+# ---------------------------------------------------------------------------
+# Runs mlb_totals.py every morning on GitHub's servers (free) and publishes
+# today's report to a URL you can bookmark and open on any device, including
+# your phone. No need to keep your own computer on.
+#
+# One-time setup:
+#   1. Make a GitHub repo and add two files: mlb_totals.py at the root, and
+#      this file at  .github/workflows/daily-dugout.yml
+#   2. Repo Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+#   3. Actions tab -> "Daily Dugout Model" -> Run workflow (to test it now)
+#   4. Bookmark the published URL: https://<your-username>.github.io/<repo>/
+#
+# It refreshes itself daily after that. Public repo is fine - it only uses
+# public MLB stats and contains nothing sensitive.
+# ---------------------------------------------------------------------------
+name: Daily Dugout Model
+
+on:
+  schedule:
+    - cron: "0 14 * * *"   # 14:00 UTC daily (~10am ET). Cron is UTC - adjust.
+  workflow_dispatch:        # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Build today's report
+        env:
+          DUGOUT_OUTFILE: public/index.html
+        run: python mlb_totals.py --no-open
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4
