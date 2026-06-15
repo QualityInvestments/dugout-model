@@ -18,7 +18,8 @@ name: Daily Dugout Model
 
 on:
   schedule:
-    - cron: "0 14 * * *"   # 14:00 UTC daily (~10am ET). Cron is UTC - adjust.
+    - cron: "7,22,37,52 13-23 * * *"   # every 15 min, 9am-7pm ET
+    - cron: "7,22,37,52 0-5 * * *"     # every 15 min, 8pm-1am ET
   workflow_dispatch:        # lets you run it by hand from the Actions tab
 
 permissions:
